@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const Review = require("./review.js");
 
 const listingSchema = new Schema({
     title:{
@@ -8,17 +9,32 @@ const listingSchema = new Schema({
     },
     description: String,
     image:{
-        type: String,
-        default:
-            'https://www.istockphoto.com/photo/southern-california-sunset-beach-with-backlit-palm-trees-gm513694026-87751777?utm_campaign=category_photos_top&utm_content=https%3A%2F%2Funsplash.com%2Fimages%2Fnature%2Fsunset&utm_medium=affiliate&utm_source=unsplash&utm_term=Sunset+images+%26+pictures%3A%3A%3A', 
-        set: (v) =>
-        v === ""
-        ? 'https://www.istockphoto.com/photo/southern-california-sunset-beach-with-backlit-palm-trees-gm513694026-87751777?utm_campaign=category_photos_top&utm_content=https%3A%2F%2Funsplash.com%2Fimages%2Fnature%2Fsunset&utm_medium=affiliate&utm_source=unsplash&utm_term=Sunset+images+%26+pictures%3A%3A%3A'
-        :v,
+       url: String,
+       filename: String, 
     },
     price:Number,
     location:String,
     country:String,
+    reviews:[
+        {
+            type: Schema.Types.ObjectId,
+            ref: "Review",
+        },
+    ],
+    owner: {
+        type: Schema.Types.ObjectId,
+        ref: "User", 
+    },
+    // category: {
+    //     type:String,
+    //     enum: ["mountains", "arctic","farms", "deserts","rooms"]
+    // }
+});
+
+listingSchema.post("findOneAndDelete", async(listing) => {
+    if(listing) {
+        await Review.deleteMany({_id: {$in: listing.reviews}});
+    }  
 });
 
 const Listing = mongoose.model("Listing", listingSchema);
